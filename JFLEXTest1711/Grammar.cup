@@ -1,0 +1,69 @@
+// CUP specification for a simple expression evaluator (no actions)
+
+import java_cup.runtime.*;
+
+/* Preliminaries to set up and use the scanner.  */
+init with {: scanner.init();              :};
+scan with {: return scanner.next_token(); :};
+
+terminal BREAK, CASE, CONST, DEFAULT, DO, ELSE, FOR, IF, INT, IVAL, MAIN, PRINT, REAL, READ, RVAL,VAL,COMMA, COLON;
+terminal START, THEN, TRATS, VAR, WHILE,SEMICOLON, WHEN, NUM,TILL,ADDOP, RELOP,ADDLOP,MULOP;
+terminal FACTORIAL,ASSIGNOP,OROP,ANDOP,DECLIST, RBRECKET, LBRECKET,RCBRECKET,LCBRECKET;
+
+non terminal read_stmt,control_stmt, program,declarations,stmtlist,declarlist,decl,type,cdecl,term,stmt, switch,choice;
+non terminal id,assignment_stmt,write_stmt,stmt_block,expression,boolexpr,step,cases,boolterm,boolfactor,factor;
+/* Grammar follows */
+
+program		 ::= MAIN id START declarations stmtlist TRATS;
+declarations ::= VAR declarlist cdecl 
+				| /*eps*/
+				;
+declarlist	 ::= declarlist id decl
+			| id COLON decl
+			;
+decl		 ::= COMMA id decl
+			| COLON type;
+type		 ::= INT
+			| REAL
+			;
+
+			
+cdecl		::= CONST type id ASSIGNOP NUM cdecl
+			| /*eps*/
+			;
+stmt		::= assignment_stmt
+			| id ASSIGNOP VAL
+			| control_stmt
+			| read_stmt
+			| write_stmt
+			| stmt_block
+			;
+write_stmt 		::= PRINT LBRECKET expression RBRECKET;
+
+read_stmt 		::= READ LBRECKET id RBRECKET;
+assignment_stmt ::= id ASSIGNOP expression;
+VAL 		::= IVAL LBRECKET expression RBRECKET
+			| RVAL LBRECKET expression RBRECKET
+			;
+control_stmt ::= IF LBRECKET boolexpr RBRECKET THEN stmt ELSE stmt
+				| WHILE LBRECKET boolexpr RBRECKET stmt_block
+				| FOR LBRECKET assignment_stmt SEMICOLON boolexpr SEMICOLON step RBRECKET stmt
+				| DO stmt_block TILL LBRECKET boolexpr RBRECKET
+				| switch
+				;
+stmt_block ::= LCBRECKET stmtlist RCBRECKET;
+switch ::= switch LBRECKET choice RBRECKET LCBRECKET cases RCBRECKET;
+choice ::= id
+		|NUM
+		;
+cases ::= CASE NUM COLON stmtlist BREAK SEMICOLON cases | DEFAULT COLON stmtlist;
+
+step ::= id ASSIGNOP id ADDOP NUM
+		|id ASSIGNOP id MULOP NUM
+		;
+boolexpr ::= boolexpr OROP boolterm | boolterm;
+boolterm ::= boolterm ANDOP boolfactor | boolfactor;
+boolfactor ::= FACTORIAL LBRECKET boolfactor RBRECKET | expression RELOP expression;
+expression ::= expression ADDOP term | term;
+term ::= term MULOP factor| factor;
+factor ::= LBRECKET expression RBRECKET | id | NUM;
